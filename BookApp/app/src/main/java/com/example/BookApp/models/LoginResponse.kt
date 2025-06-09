@@ -1,4 +1,4 @@
-package com.example.BookApp.networks
+package com.example.BookApp.models
 
 data class LoginResponse(
     val error: Boolean,

@@ -20,14 +20,15 @@ fun AppNavGraph(navController: NavHostController) {
     ) {
         composable(Destinations.LOGIN) {
             LoginScreen(
-                onLoginClick = {
-                    // TODO: Nanti navigasi ke Home
+                onLoginSuccess = {
+                    // Navigate to Home
+                    // Example: navController.navigate(Destinations.HOME)
                 },
                 onRegisterClick = {
                     navController.navigate(Destinations.REGISTER)
                 },
                 onForgotPasswordClick = {
-                    // TODO: Forgot Password Screen kalau ada
+                    // Forgot password screen
                 }
             )
         }
