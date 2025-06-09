@@ -21,5 +21,7 @@ route::apiResource('authors', AuthorController::class);
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
+Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
+Route::post('/resend-verification-code', [AuthController::class, 'resendVerificationCode']); 
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 
