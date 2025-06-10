@@ -12,14 +12,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavType
+import com.example.BookApp.ui.screens.ForgotPasswordScreen
 import com.example.BookApp.ui.screens.LoginScreen
 import com.example.BookApp.ui.screens.RegisterScreen
+import com.example.BookApp.ui.screens.ResetPasswordScreen
 import com.example.BookApp.ui.screens.VerifyEmailScreen
+import com.example.BookApp.ui.screens.EnterResetCodeScreen
 
 object Destinations {
     const val LOGIN = "login"
     const val REGISTER = "register"
     const val VERIFY_EMAIL = "verify_email/{email}"
+    const val FORGOT_PASSWORD = "forgot_password"
+    const val ENTER_RESET_CODE = "enter_reset_code/{email}"
+    const val RESET_PASSWORD = "reset_password/{email}/{token}"
     const val HOME = "home"
 }
 
@@ -40,7 +46,7 @@ fun AppNavGraph(navController: NavHostController) {
                     navController.navigate(Destinations.REGISTER)
                 },
                 onForgotPasswordClick = {
-                    // Forgot password screen
+                    navController.navigate(Destinations.FORGOT_PASSWORD)
                 }
             )
         }
@@ -48,8 +54,6 @@ fun AppNavGraph(navController: NavHostController) {
         composable(Destinations.REGISTER) {
             RegisterScreen(
                 onRegisterClick = { registeredEmail ->
-                    // GANTI INI: navController.navigate("${Destinations.VERIFY_EMAIL}/$registeredEmail")
-                    // DENGAN INI:
                     navController.navigate("verify_email/$registeredEmail") { // <--- Baris yang benar
                         popUpTo(Destinations.REGISTER) { inclusive = true }
                     }
@@ -68,18 +72,75 @@ fun AppNavGraph(navController: NavHostController) {
             VerifyEmailScreen(
                 registeredEmail = email,
                 onVerificationSuccess = {
-                    // Navigate to Home after successful email verification
                     navController.navigate(Destinations.HOME) {
-                        popUpTo(Destinations.LOGIN) { inclusive = true } // Hapus semua layar auth dari back stack
+                        popUpTo(Destinations.LOGIN) { inclusive = true }
                     }
                 },
                 onBackToLogin = {
                     navController.navigate(Destinations.LOGIN) {
-                        popUpTo(Destinations.LOGIN) { inclusive = true } // Kembali ke login, hapus yang lain
+                        popUpTo(Destinations.LOGIN) { inclusive = true }
                     }
                 }
             )
         }
 
+        composable(Destinations.FORGOT_PASSWORD) {
+            ForgotPasswordScreen(
+                onResetCodeSent = { email ->
+                    navController.navigate("enter_reset_code/$email") { // <-- Baris yang benar
+                        popUpTo(Destinations.FORGOT_PASSWORD) { inclusive = true }
+                    }
+                },
+                onBackToLogin = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            route = Destinations.ENTER_RESET_CODE,
+            arguments = listOf(navArgument("email") { type = NavType.StringType; nullable = true })
+        ) { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email")
+            EnterResetCodeScreen(
+                userEmail = email,
+                onCodeValidatedAndProceed = { validatedEmail, resetToken ->
+                    // Navigasi ke ResetPasswordScreen setelah kode divalidasi, bawa email dan token
+                    navController.navigate("reset_password/$validatedEmail/$resetToken") {
+                        popUpTo(Destinations.ENTER_RESET_CODE) { inclusive = true }
+                    }
+                },
+                onBackToLogin = {
+                    navController.navigate(Destinations.LOGIN) {
+                        popUpTo(Destinations.LOGIN) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(
+            route = Destinations.RESET_PASSWORD,
+            arguments = listOf(
+                navArgument("email") { type = NavType.StringType; nullable = true },
+                navArgument("token") { type = NavType.StringType; nullable = true }
+            )
+        ) { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email")
+            val token = backStackEntry.arguments?.getString("token")
+            ResetPasswordScreen(
+                resetEmail = email,
+                resetToken = token,
+                onPasswordResetSuccess = {
+                    navController.navigate(Destinations.LOGIN) {
+                        popUpTo(Destinations.LOGIN) { inclusive = true }
+                    }
+                },
+                onBackToLogin = {
+                    navController.navigate(Destinations.LOGIN) {
+                        popUpTo(Destinations.LOGIN) { inclusive = true }
+                    }
+                }
+            )
+        }
     }
 }
