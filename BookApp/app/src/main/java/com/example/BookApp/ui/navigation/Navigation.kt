@@ -1,23 +1,17 @@
 package com.example.BookApp.ui.navigation
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavType
-import com.example.BookApp.ui.screens.ForgotPasswordScreen
-import com.example.BookApp.ui.screens.LoginScreen
-import com.example.BookApp.ui.screens.RegisterScreen
-import com.example.BookApp.ui.screens.ResetPasswordScreen
-import com.example.BookApp.ui.screens.VerifyEmailScreen
-import com.example.BookApp.ui.screens.EnterResetCodeScreen
+import com.example.BookApp.ui.screens.LupaPassword.ForgotPasswordScreen
+import com.example.BookApp.ui.screens.login.LoginScreen
+import com.example.BookApp.ui.screens.register.RegisterScreen
+import com.example.BookApp.ui.screens.LupaPassword.ResetPasswordScreen
+import com.example.BookApp.ui.screens.register.VerifyEmailScreen
+import com.example.BookApp.ui.screens.LupaPassword.EnterResetCodeScreen
 
 object Destinations {
     const val LOGIN = "login"

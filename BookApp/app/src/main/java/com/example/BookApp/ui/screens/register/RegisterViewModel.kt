@@ -1,4 +1,4 @@
-package com.example.BookApp.ui.screens
+package com.example.BookApp.ui.screens.register
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -23,7 +23,8 @@ class RegisterViewModel @Inject constructor(
         viewModelScope.launch {
             _registerState.value = RegisterState.Loading
             if (password != confirmPassword) {
-                _registerState.value = RegisterState.Error("Password and Confirm Password do not match")
+                _registerState.value =
+                    RegisterState.Error("Password and Confirm Password do not match")
                 return@launch
             }
             if (name.isBlank() || email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {

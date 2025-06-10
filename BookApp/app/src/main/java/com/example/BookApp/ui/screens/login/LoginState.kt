@@ -1,4 +1,4 @@
-package com.example.BookApp.ui.screens
+package com.example.BookApp.ui.screens.login
 
 import com.example.BookApp.models.User
 

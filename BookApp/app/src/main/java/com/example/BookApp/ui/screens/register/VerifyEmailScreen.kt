@@ -1,4 +1,4 @@
-package com.example.BookApp.ui.screens
+package com.example.BookApp.ui.screens.register
 
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
 import kotlinx.coroutines.delay
 import java.util.concurrent.TimeUnit
