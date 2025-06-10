@@ -22,23 +22,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import kotlinx.coroutines.delay
 
-
 @Composable
 fun EnterResetCodeScreen(
     viewModel: EnterResetCodeViewModel = hiltViewModel(),
-    userEmail: String?, // Email dari NavArguments
-    onCodeValidatedAndProceed: (String, String) -> Unit, // Callback untuk navigasi ke ResetPasswordScreen (email, token)
-    onBackToLogin: () -> Unit // Callback untuk kembali ke LoginScreen
+    userEmail: String?,
+    onCodeValidatedAndProceed: (String, String) -> Unit,
+    onBackToLogin: () -> Unit
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // State untuk setiap digit kode reset
-    val codeDigits = remember { mutableStateListOf("", "", "", "", "", "") } // 6 digit
-    val focusRequesters = List(6) { remember { FocusRequester() } } // Fokus untuk setiap digit
+    val codeDigits = remember { mutableStateListOf("", "", "", "", "", "") }
+    val focusRequesters = List(6) { remember { FocusRequester() } }
 
-    // Gabungkan digit-digit menjadi satu string
     val resetCode = codeDigits.joinToString("")
 
     val enterResetCodeState by viewModel.enterResetCodeState.collectAsState()
@@ -48,14 +45,17 @@ fun EnterResetCodeScreen(
     LaunchedEffect(enterResetCodeState) {
         when (enterResetCodeState) {
             is EnterResetCodeState.Loading -> {
-                // Loading dihandle di tombol
+
             }
             is EnterResetCodeState.Success -> {
                 val message = (enterResetCodeState as EnterResetCodeState.Success).message
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                 viewModel.resetState()
-                // Navigasi ke ResetPasswordScreen dengan email dan kode
-                onCodeValidatedAndProceed(userEmail ?: "", resetCode)
+                if (!userEmail.isNullOrBlank() && resetCode.length == 6) {
+                    onCodeValidatedAndProceed(userEmail, resetCode)
+                } else {
+                    snackbarHostState.showSnackbar("Failed to navigate. Email or code missing.")
+                }
             }
             is EnterResetCodeState.Error -> {
                 val message = (enterResetCodeState as EnterResetCodeState.Error).message
@@ -66,10 +66,9 @@ fun EnterResetCodeScreen(
         }
     }
 
-    // Awalnya, fokus ke digit pertama jika email ada
     LaunchedEffect(Unit) {
         if (!userEmail.isNullOrBlank()) {
-            delay(100) // Beri waktu UI untuk di-compose
+            delay(100)
             focusRequesters[0].requestFocus()
         }
     }
@@ -125,15 +124,12 @@ fun EnterResetCodeScreen(
                             if (newValue.length <= 1 && newValue.all { it.isDigit() }) {
                                 codeDigits[index] = newValue
                                 if (newValue.isNotEmpty()) {
-                                    // Pindah fokus ke digit berikutnya
                                     if (index < 5) {
                                         focusRequesters[index + 1].requestFocus()
                                     } else {
-                                        // Jika digit terakhir, sembunyikan keyboard
                                         focusManager.clearFocus()
                                     }
                                 } else {
-                                    // Jika dihapus dan kosong, pindah fokus ke digit sebelumnya
                                     if (index > 0) {
                                         focusRequesters[index - 1].requestFocus()
                                     }
@@ -170,7 +166,8 @@ fun EnterResetCodeScreen(
                         viewModel.setError("Please enter the full 6-digit code.")
                         return@Button
                     }
-                    viewModel.validateAndProceed(resetCode) // Memanggil validasi lokal
+                    // Panggil ViewModel dengan email dan kode
+                    viewModel.validateAndProceed(userEmail, resetCode) // <-- Perubahan di sini
                 },
                 enabled = !isLoading,
                 modifier = Modifier
