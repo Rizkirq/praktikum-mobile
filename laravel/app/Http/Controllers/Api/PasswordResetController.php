@@ -102,4 +102,38 @@ class PasswordResetController extends Controller
             'message' => 'Password has been reset successfully.'
         ], 200);
     }
+
+    public function checkToken(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'token' => 'required|string|size:6', // Pastikan size:6 karena kita buat 6 digit angka
+        ]);
+
+        // Temukan token di database
+        $passwordReset = DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->where('token', $request->token)
+            ->first();
+
+        if (!$passwordReset) {
+            return response()->json([
+                'valid' => false,
+                'message' => 'Invalid password reset code.'
+            ], 400); // 400 Bad Request karena kode tidak ditemukan
+        }
+
+        // Cek apakah token sudah kadaluarsa (60 menit dari created_at)
+        if (Carbon::parse($passwordReset->created_at)->addMinutes(60)->isBefore(Carbon::now())) {
+            return response()->json([
+                'valid' => false,
+                'message' => 'Password reset code has expired.'
+            ], 400); // 400 Bad Request karena kode kadaluarsa
+        }
+
+        return response()->json([
+            'valid' => true,
+            'message' => 'Password reset code is valid.'
+        ], 200);
+    }
 }
