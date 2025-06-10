@@ -6,6 +6,8 @@ import com.example.BookApp.models.LoginResponse
 import com.example.BookApp.models.RegisterRequest
 import com.example.BookApp.models.ResendCodeRequest
 import com.example.BookApp.models.VerifyEmailRequest
+import com.example.BookApp.models.ForgotPasswordRequest
+import com.example.BookApp.models.ResetPasswordRequest
 import com.example.BookApp.models.User
 import com.example.BookApp.networks.LoginApi
 import kotlinx.coroutines.flow.Flow
@@ -102,6 +104,40 @@ class AuthRepository @Inject constructor(
         try {
             val response = loginApi.resendVerificationCode(ResendCodeRequest(email))
 
+            if (response.error) {
+                emit(Result.Error(response.message))
+            } else {
+                emit(Result.Success(response.message, response.message))
+            }
+        } catch (e: HttpException) {
+            val message = parseErrorMessage(e.response()?.errorBody()?.string())
+            emit(Result.Error(message))
+        } catch (e: Exception) {
+            emit(Result.Error(e.message ?: "Unknown error"))
+        }
+    }
+
+    suspend fun forgotPasswordRequest(email: String): Flow<Result<String>> = flow {
+        emit(Result.Loading)
+        try {
+            val response = loginApi.forgotPasswordRequest(ForgotPasswordRequest(email))
+            if (response.error) {
+                emit(Result.Error(response.message))
+            } else {
+                emit(Result.Success(response.message, response.message))
+            }
+        } catch (e: HttpException) {
+            val message = parseErrorMessage(e.response()?.errorBody()?.string())
+            emit(Result.Error(message))
+        } catch (e: Exception) {
+            emit(Result.Error(e.message ?: "Unknown error"))
+        }
+    }
+
+    suspend fun resetPassword(email: String, token: String, password: String, confirmPassword: String): Flow<Result<String>> = flow {
+        emit(Result.Loading)
+        try {
+            val response = loginApi.resetPassword(ResetPasswordRequest(email, token, password, confirmPassword))
             if (response.error) {
                 emit(Result.Error(response.message))
             } else {
