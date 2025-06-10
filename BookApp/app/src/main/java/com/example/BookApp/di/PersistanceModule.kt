@@ -20,7 +20,9 @@ object PersistanceModule {
             application.applicationContext,
             BookDatabase::class.java,
             "book_database"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides

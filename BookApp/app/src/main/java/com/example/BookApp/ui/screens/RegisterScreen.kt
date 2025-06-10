@@ -24,7 +24,7 @@ import androidx.compose.ui.platform.LocalContext
 @Composable
 fun RegisterScreen(
     viewModel: RegisterViewModel = hiltViewModel(),
-    onRegisterClick: () -> Unit,
+    onRegisterClick: (String) -> Unit, // Tanda tangan diubah untuk menerima email
     onLoginClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -39,16 +39,16 @@ fun RegisterScreen(
     val registerState by viewModel.registerState.collectAsState()
     val isLoading = registerState is RegisterState.Loading
     val snackbarHostState = remember { SnackbarHostState() }
-
     LaunchedEffect(registerState) {
         when (registerState) {
             is RegisterState.Loading -> {
-                // Tampilkan loading, sudah di handle di button
+                // Loading sudah dihandle di button
             }
             is RegisterState.Success -> {
                 Toast.makeText(context, "Registration Successful", Toast.LENGTH_SHORT).show()
                 viewModel.resetState()
-                onRegisterClick() // Navigasi setelah sukses register
+                val registeredEmail = (registerState as RegisterState.Success).user.email // Ambil email dari user object
+                onRegisterClick(registeredEmail) // Kirim email ke NavGraph untuk navigasi
             }
             is RegisterState.Error -> {
                 val message = (registerState as RegisterState.Error).message
@@ -71,8 +71,17 @@ fun RegisterScreen(
                 .background(Color(0xFFF5F9FF)),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
-        ){
+        ) {
             Spacer(modifier = Modifier.height(100.dp))
+
+            // Logo Placeholder (jika R.drawable.ic_placeholder ada)
+            // Icon(
+            //     painter = painterResource(id = R.drawable.ic_placeholder),
+            //     contentDescription = "Logo",
+            //     tint = Color(0xFFB0C4DE),
+            //     modifier = Modifier.size(64.dp)
+            // )
+            // Spacer(modifier = Modifier.height(40.dp)) // Hanya jika ada logo
 
             Text(
                 text = "Sign Up",
@@ -98,8 +107,7 @@ fun RegisterScreen(
                 label = { Text("Name") },
                 singleLine = true,
                 shape = RoundedCornerShape(8.dp),
-                modifier = Modifier
-                    .fillMaxWidth(0.85f)
+                modifier = Modifier.fillMaxWidth(0.85f)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -111,8 +119,7 @@ fun RegisterScreen(
                 singleLine = true,
                 shape = RoundedCornerShape(8.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                modifier = Modifier
-                    .fillMaxWidth(0.85f)
+                modifier = Modifier.fillMaxWidth(0.85f)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -123,14 +130,10 @@ fun RegisterScreen(
                 label = { Text("Password") },
                 singleLine = true,
                 shape = RoundedCornerShape(8.dp),
-                modifier = Modifier
-                    .fillMaxWidth(0.85f),
+                modifier = Modifier.fillMaxWidth(0.85f),
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
-                    val image = if (passwordVisible)
-                        Icons.Filled.Visibility
-                    else Icons.Filled.VisibilityOff
-
+                    val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(imageVector = image, contentDescription = null)
                     }
@@ -146,14 +149,10 @@ fun RegisterScreen(
                 label = { Text("Confirm Password") },
                 singleLine = true,
                 shape = RoundedCornerShape(8.dp),
-                modifier = Modifier
-                    .fillMaxWidth(0.85f),
+                modifier = Modifier.fillMaxWidth(0.85f),
                 visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
-                    val image = if (confirmPasswordVisible)
-                        Icons.Filled.Visibility
-                    else Icons.Filled.VisibilityOff
-
+                    val image = if (confirmPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                     IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
                         Icon(imageVector = image, contentDescription = null)
                     }
@@ -165,8 +164,7 @@ fun RegisterScreen(
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth(0.85f)
+                modifier = Modifier.fillMaxWidth(0.85f)
             ) {
                 Checkbox(
                     checked = isChecked,
@@ -185,20 +183,27 @@ fun RegisterScreen(
             }
 
             Spacer(modifier = Modifier.height(24.dp))
+
+            // Register Button
             Button(
                 onClick = {
                     if (!isChecked) {
                         viewModel.setError("You must agree to the Terms and Conditions and Privacy Policy.")
                     } else {
-                        viewModel.register(
-                            name.value,
-                            email.value,
-                            password.value,
-                            confirmPassword.value
-                        )
+                        // Lakukan validasi input sebelum memanggil ViewModel
+                        if (name.value.isBlank() || email.value.isBlank() || password.value.isBlank() || confirmPassword.value.isBlank()) {
+                            viewModel.setError("All fields must be filled.")
+                        } else {
+                            viewModel.register(
+                                name.value,
+                                email.value,
+                                password.value,
+                                confirmPassword.value
+                            )
+                        }
                     }
                 },
-                enabled = !isLoading, // Disable button saat loading
+                enabled = !isLoading,
                 modifier = Modifier
                     .fillMaxWidth(0.85f)
                     .height(48.dp),
@@ -219,7 +224,10 @@ fun RegisterScreen(
                             strokeWidth = 2.dp
                         )
                     }
-                    Text(text = if (isLoading) "Registering..." else "Register", color = Color.White)
+                    Text(
+                        text = if (isLoading) "Registering..." else "Register",
+                        color = Color.White
+                    )
                 }
             }
 
