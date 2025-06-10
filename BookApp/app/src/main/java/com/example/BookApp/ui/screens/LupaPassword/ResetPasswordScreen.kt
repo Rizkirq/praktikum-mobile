@@ -1,4 +1,4 @@
-package com.example.BookApp.ui.screens
+package com.example.BookApp.ui.screens.LupaPassword
 
 // package com.example.BookApp.ui.screens
 
@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
 
 @Composable

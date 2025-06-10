@@ -1,6 +1,8 @@
-package com.example.BookApp.ui.screens
+package com.example.BookApp.ui.screens.login
 
+import androidx.compose.ui.platform.LocalContext
 import android.widget.Toast
+import com.example.BookApp.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,49 +15,52 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.ui.platform.LocalContext
+
 
 @Composable
-fun RegisterScreen(
-    viewModel: RegisterViewModel = hiltViewModel(),
-    onRegisterClick: (String) -> Unit, // Tanda tangan diubah untuk menerima email
-    onLoginClick: () -> Unit,
+fun LoginScreen(
+    viewModel: LoginViewModel = hiltViewModel(),
+    onLoginSuccess: () -> Unit,
+    onRegisterClick: () -> Unit,
+    onForgotPasswordClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val name = remember { mutableStateOf("") }
     val email = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
-    val confirmPassword = remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    var confirmPasswordVisible by remember { mutableStateOf(false) }
-    var isChecked by remember { mutableStateOf(false) } // Untuk Terms & Conditions
-    val registerState by viewModel.registerState.collectAsState()
-    val isLoading = registerState is RegisterState.Loading
+    val loginState by viewModel.loginState.collectAsState()
+    val isLoading = loginState is LoginState.Loading
     val snackbarHostState = remember { SnackbarHostState() }
-    LaunchedEffect(registerState) {
-        when (registerState) {
-            is RegisterState.Loading -> {
-                // Loading sudah dihandle di button
+
+    // Observe Login State
+    LaunchedEffect(loginState) {
+        when (loginState) {
+            is LoginState.Loading -> {
+                // Loading? Bisa dikasih loading spinner di button kalo mau
             }
-            is RegisterState.Success -> {
-                Toast.makeText(context, "Registration Successful", Toast.LENGTH_SHORT).show()
+
+            is LoginState.Success -> {
+                // Bisa kasih snackbar sukses juga kalau mau, tapi di sini Toast dulu
+                Toast.makeText(context, "Login Successful", Toast.LENGTH_SHORT).show()
                 viewModel.resetState()
-                val registeredEmail = (registerState as RegisterState.Success).user.email // Ambil email dari user object
-                onRegisterClick(registeredEmail) // Kirim email ke NavGraph untuk navigasi
+                onLoginSuccess() // navigate
             }
-            is RegisterState.Error -> {
-                val message = (registerState as RegisterState.Error).message
+
+            is LoginState.Error -> {
+                val message = (loginState as LoginState.Error).message
                 snackbarHostState.showSnackbar(message)
                 viewModel.resetState()
             }
-            else -> {} // Idle
+
+            else -> {}
         }
     }
 
@@ -64,6 +69,7 @@ fun RegisterScreen(
             SnackbarHost(hostState = snackbarHostState)
         }
     ) { paddingValues ->
+
         Column(
             modifier = Modifier
                 .padding(paddingValues)
@@ -74,44 +80,26 @@ fun RegisterScreen(
         ) {
             Spacer(modifier = Modifier.height(100.dp))
 
-            // Logo Placeholder (jika R.drawable.ic_placeholder ada)
-            // Icon(
-            //     painter = painterResource(id = R.drawable.ic_placeholder),
-            //     contentDescription = "Logo",
-            //     tint = Color(0xFFB0C4DE),
-            //     modifier = Modifier.size(64.dp)
-            // )
-            // Spacer(modifier = Modifier.height(40.dp)) // Hanya jika ada logo
+            Icon(
+                painter = painterResource(id = R.drawable.ic_placeholder),
+                contentDescription = "Logo",
+                tint = Color(0xFFB0C4DE),
+                modifier = Modifier.size(64.dp)
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
 
             Text(
-                text = "Sign Up",
+                text = "Welcome!",
                 style = MaterialTheme.typography.headlineLarge.copy(
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Create an account to get started",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black
-            )
-
             Spacer(modifier = Modifier.height(24.dp))
 
-            OutlinedTextField(
-                value = name.value,
-                onValueChange = { name.value = it },
-                label = { Text("Name") },
-                singleLine = true,
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier.fillMaxWidth(0.85f)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
+            // Email
             OutlinedTextField(
                 value = email.value,
                 onValueChange = { email.value = it },
@@ -124,6 +112,7 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Password
             OutlinedTextField(
                 value = password.value,
                 onValueChange = { password.value = it },
@@ -143,64 +132,24 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            OutlinedTextField(
-                value = confirmPassword.value,
-                onValueChange = { confirmPassword.value = it },
-                label = { Text("Confirm Password") },
-                singleLine = true,
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier.fillMaxWidth(0.85f),
-                visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    val image = if (confirmPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                    IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
-                        Icon(imageVector = image, contentDescription = null)
-                    }
-                },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth(0.85f)
-            ) {
-                Checkbox(
-                    checked = isChecked,
-                    onCheckedChange = { isChecked = it },
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = MaterialTheme.colorScheme.primary,
-                        uncheckedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                )
-                Spacer(modifier = Modifier.width(8.dp))
+            TextButton(onClick = onForgotPasswordClick) {
                 Text(
-                    text = "I have read and agree to the Terms and Conditions and the Privacy Policy.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    "Forgot password?",
+                    color = Color(0xFF007BFF),
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Register Button
+            // Login Button
             Button(
                 onClick = {
-                    if (!isChecked) {
-                        viewModel.setError("You must agree to the Terms and Conditions and Privacy Policy.")
+                    if (email.value.isBlank() || password.value.isBlank()) {
+                        val message = "Email and Password cannot be empty"
+                        viewModel.setError(message)
                     } else {
-                        // Lakukan validasi input sebelum memanggil ViewModel
-                        if (name.value.isBlank() || email.value.isBlank() || password.value.isBlank() || confirmPassword.value.isBlank()) {
-                            viewModel.setError("All fields must be filled.")
-                        } else {
-                            viewModel.register(
-                                name.value,
-                                email.value,
-                                password.value,
-                                confirmPassword.value
-                            )
-                        }
+                        viewModel.login(email.value, password.value)
                     }
                 },
                 enabled = !isLoading,
@@ -212,7 +161,7 @@ fun RegisterScreen(
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
+                    horizontalArrangement = Arrangement.Center, // 🔥 Center isi Row
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     if (isLoading) {
@@ -225,11 +174,12 @@ fun RegisterScreen(
                         )
                     }
                     Text(
-                        text = if (isLoading) "Registering..." else "Register",
+                        text = if (isLoading) "Logging in..." else "Login",
                         color = Color.White
                     )
                 }
             }
+
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -238,16 +188,16 @@ fun RegisterScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Have an Account ?",
+                    text = "Not a member ? ",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Black
                 )
                 TextButton(
-                    onClick = onLoginClick,
+                    onClick = onRegisterClick,
                     contentPadding = PaddingValues(0.dp)
                 ) {
                     Text(
-                        "Login",
+                        "Register now",
                         color = Color(0xFF007BFF),
                         style = MaterialTheme.typography.bodyMedium
                     )

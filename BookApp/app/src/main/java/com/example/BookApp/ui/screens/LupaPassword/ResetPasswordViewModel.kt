@@ -1,4 +1,4 @@
-package com.example.BookApp.ui.screens
+package com.example.BookApp.ui.screens.LupaPassword
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import android.util.Log
 
 @HiltViewModel
 class ResetPasswordViewModel @Inject constructor(
@@ -33,19 +32,23 @@ class ResetPasswordViewModel @Inject constructor(
                 return@launch
             }
             if (password != confirmPassword) {
-                _resetPasswordState.value = ResetPasswordState.Error("Password and Confirm Password do not match.")
+                _resetPasswordState.value =
+                    ResetPasswordState.Error("Password and Confirm Password do not match.")
                 return@launch
             }
             if (password.length < 8) {
-                _resetPasswordState.value = ResetPasswordState.Error("Password must be at least 8 characters long.")
+                _resetPasswordState.value =
+                    ResetPasswordState.Error("Password must be at least 8 characters long.")
                 return@launch
             }
 
             authRepository.resetPassword(email, token, password, confirmPassword).collectLatest { result ->
                 when (result) {
                     is Result.Loading -> _resetPasswordState.value = ResetPasswordState.Loading
-                    is Result.Success -> _resetPasswordState.value = ResetPasswordState.Success(result.data)
-                    is Result.Error -> _resetPasswordState.value = ResetPasswordState.Error(result.message)
+                    is Result.Success -> _resetPasswordState.value =
+                        ResetPasswordState.Success(result.data)
+                    is Result.Error -> _resetPasswordState.value =
+                        ResetPasswordState.Error(result.message)
                 }
             }
         }

@@ -1,4 +1,4 @@
-package com.example.BookApp.ui.screens
+package com.example.BookApp.ui.screens.LupaPassword
 
 sealed class ResetPasswordState {
     object Idle : ResetPasswordState()

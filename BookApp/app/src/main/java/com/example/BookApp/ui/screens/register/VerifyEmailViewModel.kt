@@ -1,4 +1,4 @@
-package com.example.BookApp.ui.screens
+package com.example.BookApp.ui.screens.register
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -6,11 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.BookApp.helper.Result
 import com.example.BookApp.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -36,19 +34,25 @@ class VerifyEmailViewModel @Inject constructor(
         viewModelScope.launch {
             _verifyEmailState.value = VerifyEmailState.Loading
             if (verificationCode.isBlank()) {
-                _verifyEmailState.value = VerifyEmailState.Error("Verification code cannot be empty.")
+                _verifyEmailState.value =
+                    VerifyEmailState.Error("Verification code cannot be empty.")
                 return@launch
             }
             if (email.isBlank()) {
-                _verifyEmailState.value = VerifyEmailState.Error("Email is missing. Please restart the process or contact support.")
+                _verifyEmailState.value =
+                    VerifyEmailState.Error("Email is missing. Please restart the process or contact support.")
                 return@launch
             }
 
             authRepository.verifyEmail(email, verificationCode).collectLatest { result ->
                 when (result) {
                     is Result.Loading -> _verifyEmailState.value = VerifyEmailState.Loading
-                    is Result.Success -> _verifyEmailState.value = VerifyEmailState.Success(result.data, result.message ?: "Email verified successfully.")
-                    is Result.Error -> _verifyEmailState.value = VerifyEmailState.Error(result.message)
+                    is Result.Success -> _verifyEmailState.value = VerifyEmailState.Success(
+                        result.data,
+                        result.message ?: "Email verified successfully."
+                    )
+                    is Result.Error -> _verifyEmailState.value =
+                        VerifyEmailState.Error(result.message)
                 }
             }
         }
@@ -59,7 +63,8 @@ class VerifyEmailViewModel @Inject constructor(
             // Periksa cooldown sebelum mengirim
             val currentTime = System.currentTimeMillis()
             if (currentTime < _resendCooldownEndTimeMillis.value) {
-                _verifyEmailState.value = VerifyEmailState.Error("Please wait before resending the code.")
+                _verifyEmailState.value =
+                    VerifyEmailState.Error("Please wait before resending the code.")
                 return@launch
             }
 
@@ -77,7 +82,8 @@ class VerifyEmailViewModel @Inject constructor(
                         _resendCooldownEndTimeMillis.value = currentTime + COOLDOWN_MILLIS
                         _verifyEmailState.value = VerifyEmailState.ResendSuccess(result.data)
                     }
-                    is Result.Error -> _verifyEmailState.value = VerifyEmailState.Error(result.message)
+                    is Result.Error -> _verifyEmailState.value =
+                        VerifyEmailState.Error(result.message)
                 }
             }
         }

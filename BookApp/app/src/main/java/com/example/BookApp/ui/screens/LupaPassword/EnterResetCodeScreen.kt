@@ -1,4 +1,4 @@
-package com.example.BookApp.ui.screens
+package com.example.BookApp.ui.screens.LupaPassword
 
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -21,6 +21,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import kotlinx.coroutines.delay
+import java.util.concurrent.TimeUnit
 
 @Composable
 fun EnterResetCodeScreen(
@@ -41,11 +42,36 @@ fun EnterResetCodeScreen(
     val enterResetCodeState by viewModel.enterResetCodeState.collectAsState()
     val isLoading = enterResetCodeState is EnterResetCodeState.Loading
 
+    // --- State untuk Cooldown di UI ---
+    val resendCooldownEndTimeMillis by viewModel.resendCooldownEndTimeMillis.collectAsState()
+    val timeRemainingState = remember { mutableLongStateOf(0L) } // State lokal untuk hitung mundur
+
+    LaunchedEffect(resendCooldownEndTimeMillis) {
+        // Setiap kali resendCooldownEndTimeMillis berubah (misal, setelah sukses kirim ulang)
+        // atau saat composable pertama kali muncul (jika ada nilai yang tersimpan)
+        while (true) {
+            val currentTime = System.currentTimeMillis()
+            val timeLeft = (resendCooldownEndTimeMillis - currentTime).coerceAtLeast(0L)
+            timeRemainingState.longValue = timeLeft // Update state lokal
+            if (timeLeft == 0L) {
+                break // Hentikan loop jika cooldown sudah habis
+            }
+            delay(1000) // Update setiap 1 detik
+        }
+    }
+
+    val isResendButtonEnabled = timeRemainingState.longValue == 0L && !isLoading
+    val minutes = TimeUnit.MILLISECONDS.toMinutes(timeRemainingState.longValue)
+    val seconds = TimeUnit.MILLISECONDS.toSeconds(timeRemainingState.longValue) -
+            TimeUnit.MINUTES.toSeconds(minutes)
+    val formattedTime = String.format("%02d:%02d", minutes, seconds)
+    // --- Akhir State Cooldown di UI ---
+
     // Observe Enter Reset Code State
     LaunchedEffect(enterResetCodeState) {
         when (enterResetCodeState) {
             is EnterResetCodeState.Loading -> {
-
+                // ...
             }
             is EnterResetCodeState.Success -> {
                 val message = (enterResetCodeState as EnterResetCodeState.Success).message
@@ -56,6 +82,11 @@ fun EnterResetCodeScreen(
                 } else {
                     snackbarHostState.showSnackbar("Failed to navigate. Email or code missing.")
                 }
+            }
+            is EnterResetCodeState.ResendSuccess -> {
+                val message = (enterResetCodeState as EnterResetCodeState.ResendSuccess).message
+                snackbarHostState.showSnackbar(message)
+                viewModel.resetState()
             }
             is EnterResetCodeState.Error -> {
                 val message = (enterResetCodeState as EnterResetCodeState.Error).message
@@ -155,6 +186,35 @@ fun EnterResetCodeScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Resend code Button
+            TextButton(
+                onClick = {
+                    if (!userEmail.isNullOrBlank()) {
+                        viewModel.resendResetCode(userEmail)
+                    } else {
+                        viewModel.setError("Email address is missing. Cannot resend code.")
+                    }
+                },
+                enabled = isResendButtonEnabled,
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                if (timeRemainingState.longValue > 0) {
+                    Text(
+                        "Resend code in $formattedTime",
+                        color = Color.Gray,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                } else {
+                    Text(
+                        "Resend code",
+                        color = Color(0xFF007BFF),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             // Continue Button (Verify Code)
             Button(
                 onClick = {
@@ -166,8 +226,7 @@ fun EnterResetCodeScreen(
                         viewModel.setError("Please enter the full 6-digit code.")
                         return@Button
                     }
-                    // Panggil ViewModel dengan email dan kode
-                    viewModel.validateAndProceed(userEmail, resetCode) // <-- Perubahan di sini
+                    viewModel.validateAndProceed(userEmail, resetCode)
                 },
                 enabled = !isLoading,
                 modifier = Modifier

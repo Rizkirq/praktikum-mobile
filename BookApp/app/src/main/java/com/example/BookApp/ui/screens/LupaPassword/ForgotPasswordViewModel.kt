@@ -1,4 +1,4 @@
-package com.example.BookApp.ui.screens
+package com.example.BookApp.ui.screens.LupaPassword
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -23,15 +23,18 @@ class ForgotPasswordViewModel @Inject constructor(
         viewModelScope.launch {
             _forgotPasswordState.value = ForgotPasswordState.Loading
             if (email.isBlank()) {
-                _forgotPasswordState.value = ForgotPasswordState.Error("Email address cannot be empty.")
+                _forgotPasswordState.value =
+                    ForgotPasswordState.Error("Email address cannot be empty.")
                 return@launch
             }
 
             authRepository.forgotPasswordRequest(email).collectLatest { result ->
                 when (result) {
                     is Result.Loading -> _forgotPasswordState.value = ForgotPasswordState.Loading
-                    is Result.Success -> _forgotPasswordState.value = ForgotPasswordState.Success(result.data)
-                    is Result.Error -> _forgotPasswordState.value = ForgotPasswordState.Error(result.message)
+                    is Result.Success -> _forgotPasswordState.value =
+                        ForgotPasswordState.Success(result.data)
+                    is Result.Error -> _forgotPasswordState.value =
+                        ForgotPasswordState.Error(result.message)
                 }
             }
         }
