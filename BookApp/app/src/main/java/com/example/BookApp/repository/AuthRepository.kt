@@ -2,6 +2,10 @@ package com.example.BookApp.repository
 
 import com.example.BookApp.dao.UserDao
 import com.example.BookApp.models.LoginRequest
+import com.example.BookApp.models.LoginResponse
+import com.example.BookApp.models.RegisterRequest
+import com.example.BookApp.models.ResendCodeRequest
+import com.example.BookApp.models.VerifyEmailRequest
 import com.example.BookApp.models.User
 import com.example.BookApp.networks.LoginApi
 import kotlinx.coroutines.flow.Flow
@@ -9,7 +13,6 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
 import com.example.BookApp.helper.Result
-import com.example.BookApp.models.RegisterRequest
 import okhttp3.ResponseBody
 import org.json.JSONObject
 import retrofit2.HttpException
@@ -23,20 +26,21 @@ class AuthRepository @Inject constructor(
         emit(Result.Loading)
         try {
             val response = loginApi.login(LoginRequest(email, password))
+
             if (response.error) {
                 emit(Result.Error(response.message))
             } else {
                 val user = User(
-                    userId = response.loginResult.userId,
-                    name = response.loginResult.name,
-                    token = response.loginResult.token
+                    userId = response.loginResult?.userId ?: "",
+                    name = response.loginResult?.name ?: "",
+                    token = response.loginResult?.token ?: "",
+                    email = email
                 )
                 userDao.insertUser(user)
-                emit(Result.Success(user))
+                emit(Result.Success(user, response.message))
             }
         } catch (e: HttpException) {
-            val errorBody = e.response()?.errorBody()?.string()
-            val message = parseErrorMessage(errorBody)
+            val message = parseErrorMessage(e.response()?.errorBody()?.string())
             emit(Result.Error(message))
         } catch (e: Exception) {
             emit(Result.Error(e.message ?: "Unknown error"))
@@ -47,20 +51,64 @@ class AuthRepository @Inject constructor(
         emit(Result.Loading)
         try {
             val response = loginApi.register(RegisterRequest(name, email, password, confirmPassword))
+
             if (response.error) {
                 emit(Result.Error(response.message))
             } else {
                 val user = User(
-                    userId = response.loginResult.userId,
-                    name = response.loginResult.name,
-                    token = response.loginResult.token
+                    userId = response.loginResult?.userId ?: "",
+                    name = response.loginResult?.name ?: "",
+                    token = response.loginResult?.token ?: "",
+                    email = email
                 )
                 userDao.insertUser(user)
-                emit(Result.Success(user))
+                emit(Result.Success(user, response.message))
             }
         } catch (e: HttpException) {
-            val errorBody = e.response()?.errorBody()?.string()
-            val message = parseErrorMessage(errorBody)
+            val message = parseErrorMessage(e.response()?.errorBody()?.string())
+            emit(Result.Error(message))
+        } catch (e: Exception) {
+            emit(Result.Error(e.message ?: "Unknown error"))
+        }
+    }
+
+    suspend fun verifyEmail(email: String, verificationCode: String): Flow<Result<User>> = flow {
+        emit(Result.Loading)
+        try {
+            val response = loginApi.verifyEmail(VerifyEmailRequest(email, verificationCode))
+
+            if (response.error) {
+                emit(Result.Error(response.message))
+            } else {
+                val user = User(
+                    userId = response.loginResult?.userId ?: "",
+                    name = response.loginResult?.name ?: "",
+                    token = response.loginResult?.token ?: "",
+                    email = email
+                )
+                userDao.insertUser(user)
+                emit(Result.Success(user, response.message))
+            }
+        } catch (e: HttpException) {
+            val message = parseErrorMessage(e.response()?.errorBody()?.string())
+            emit(Result.Error(message))
+        } catch (e: Exception) {
+            emit(Result.Error(e.message ?: "Unknown error"))
+        }
+    }
+
+    suspend fun resendVerificationCode(email: String): Flow<Result<String>> = flow {
+        emit(Result.Loading)
+        try {
+            val response = loginApi.resendVerificationCode(ResendCodeRequest(email))
+
+            if (response.error) {
+                emit(Result.Error(response.message))
+            } else {
+                emit(Result.Success(response.message, response.message))
+            }
+        } catch (e: HttpException) {
+            val message = parseErrorMessage(e.response()?.errorBody()?.string())
             emit(Result.Error(message))
         } catch (e: Exception) {
             emit(Result.Error(e.message ?: "Unknown error"))
