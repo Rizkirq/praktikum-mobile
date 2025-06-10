@@ -177,7 +177,10 @@ class AuthController extends Controller
         }
 
         // Generate token baru
-        $verificationToken = Str::random(6);
+        $verificationToken = '';
+        for ($i = 0; $i < 6; $i++) {
+            $verificationToken .= mt_rand(0, 9);
+        }
         $expiresAt = Carbon::now()->addMinutes(10);
 
         $user->verification_token = $verificationToken;
