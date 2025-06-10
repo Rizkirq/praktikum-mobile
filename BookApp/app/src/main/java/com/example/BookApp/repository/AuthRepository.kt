@@ -151,6 +151,25 @@ class AuthRepository @Inject constructor(
         }
     }
 
+    suspend fun checkResetToken(email: String, token: String): Flow<Result<String>> = flow {
+        emit(Result.Loading)
+        try {
+            val requestBody = ResetPasswordRequest(email = email, token = token, password = "", password_confirmation = "")
+            val response = loginApi.checkResetToken(requestBody)
+
+            if (response.valid) {
+                emit(Result.Success(response.message, response.message))
+            } else {
+                emit(Result.Error(response.message))
+            }
+        } catch (e: HttpException) {
+            val message = parseErrorMessage(e.response()?.errorBody()?.string())
+            emit(Result.Error(message))
+        } catch (e: Exception) {
+            emit(Result.Error(e.message ?: "Unknown error"))
+        }
+    }
+
     private fun parseErrorMessage(errorBody: String?): String {
         return try {
             if (errorBody.isNullOrEmpty()) {

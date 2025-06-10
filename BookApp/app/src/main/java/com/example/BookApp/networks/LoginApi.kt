@@ -1,5 +1,6 @@
 package com.example.BookApp.networks
 
+import com.example.BookApp.models.CheckResetTokenResponse
 import com.example.BookApp.models.ForgotPasswordRequest
 import com.example.BookApp.models.LoginRequest
 import com.example.BookApp.models.LoginResponse
@@ -28,4 +29,8 @@ interface LoginApi {
 
     @POST("reset-password")
     suspend fun resetPassword(@Body request: ResetPasswordRequest): LoginResponse
+
+    @POST("check-reset-token")
+    suspend fun checkResetToken(@Body request: ResetPasswordRequest): CheckResetTokenResponse
+
 }
