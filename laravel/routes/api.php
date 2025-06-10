@@ -28,4 +28,4 @@ Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logo
 
 Route::post('/forgot-password-request', [PasswordResetController::class, 'sendResetLinkEmail']);
 Route::post('/reset-password', [PasswordResetController::class, 'reset']);
-
+Route::post('/check-reset-token', [PasswordResetController::class, 'checkToken']);
