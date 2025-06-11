@@ -1,4 +1,4 @@
-# praktikum-mobile
+# BookApp
 
 Repositori ini berisi proyek pengembangan aplikasi mobile dan web sebagai tugas praktikum. Proyek ini terbagi menjadi dua bagian utama: sebuah aplikasi mobile dan sebuah sistem backend/web menggunakan framework Laravel.
 
