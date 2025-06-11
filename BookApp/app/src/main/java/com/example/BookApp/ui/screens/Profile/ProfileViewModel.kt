@@ -22,7 +22,6 @@ class ProfileViewModel @Inject constructor(
 
     private val _logoutSuccess = MutableStateFlow(false)
     val logoutSuccess: StateFlow<Boolean> = _logoutSuccess
-
     init {
         fetchUserProfile()
     }
@@ -39,7 +38,6 @@ class ProfileViewModel @Inject constructor(
             }
         }
     }
-
     fun logout() {
         viewModelScope.launch {
             try {

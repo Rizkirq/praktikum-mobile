@@ -33,7 +33,7 @@ object NetworkModule {
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
 //            .baseUrl("http://10.0.2.2/laravel/public/api/")
-            .baseUrl("http://192.168.100.74/laravel/public/api/")
+            .baseUrl("http://192.168.150.22/laravel/public/api/")
             .addConverterFactory(GsonConverterFactory.create())
             .client(okHttpClient)
             .build()
