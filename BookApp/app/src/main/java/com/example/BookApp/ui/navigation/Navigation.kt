@@ -5,13 +5,19 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import androidx.navigation.NamedNavArgument
+import androidx.compose.runtime.remember
 import androidx.navigation.NavType
+import com.example.BookApp.ui.navigation.Destinations.EXPLORE
+import com.example.BookApp.ui.screens.BookDetail.BookDetailScreen
+import com.example.BookApp.ui.screens.Explore.ExploreScreen
 import com.example.BookApp.ui.screens.LupaPassword.ForgotPasswordScreen
 import com.example.BookApp.ui.screens.login.LoginScreen
 import com.example.BookApp.ui.screens.register.RegisterScreen
 import com.example.BookApp.ui.screens.LupaPassword.ResetPasswordScreen
 import com.example.BookApp.ui.screens.register.VerifyEmailScreen
 import com.example.BookApp.ui.screens.LupaPassword.EnterResetCodeScreen
+import com.example.BookApp.ui.screens.home.HomeScreen
 
 object Destinations {
     const val LOGIN = "login"
@@ -21,6 +27,9 @@ object Destinations {
     const val ENTER_RESET_CODE = "enter_reset_code/{email}"
     const val RESET_PASSWORD = "reset_password/{email}/{token}"
     const val HOME = "home"
+    const val BOOK_DETAIL = "book_detail/{bookId}"
+    const val EXPLORE = "explore"
+
 }
 
 @Composable
@@ -136,5 +145,34 @@ fun AppNavGraph(navController: NavHostController) {
                 }
             )
         }
+
+        composable(Destinations.HOME) {
+            HomeScreen(
+                onNavigateToExplore = { navController.navigate(Destinations.EXPLORE) },
+                onNavigateToLibrary = { navController.navigate("library_route_placeholder") },
+                onNavigateToProfile = { navController.navigate("profile_route_placeholder") },
+                onNavigateToSearch = { navController.navigate("search_route_placeholder") },
+                onBookClick = { bookId ->
+                    navController.navigate("book_detail/$bookId")
+                }
+            )
+        }
+
+        composable(
+            route = Destinations.BOOK_DETAIL,
+            arguments = listOf(navArgument("bookId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val bookId = backStackEntry.arguments?.getInt("bookId")
+            BookDetailScreen(
+                bookId = bookId,
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+        composable(EXPLORE) {
+            ExploreScreen(onBookClick = { bookId ->
+                navController.navigate("book_detail/$bookId")
+            })
+        }
+
     }
 }
