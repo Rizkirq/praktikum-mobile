@@ -11,6 +11,7 @@ import androidx.navigation.NavType
 import com.example.BookApp.ui.navigation.Destinations.EXPLORE
 import com.example.BookApp.ui.screens.BookDetail.BookDetailScreen
 import com.example.BookApp.ui.screens.Explore.ExploreScreen
+import com.example.BookApp.ui.screens.Library.LibraryScreen
 import com.example.BookApp.ui.screens.LupaPassword.ForgotPasswordScreen
 import com.example.BookApp.ui.screens.login.LoginScreen
 import com.example.BookApp.ui.screens.register.RegisterScreen
@@ -29,7 +30,9 @@ object Destinations {
     const val HOME = "home"
     const val BOOK_DETAIL = "book_detail/{bookId}"
     const val EXPLORE = "explore"
-
+    const val LIBRARY = "library"
+    const val PROFILE = "profile"
+    const val SEARCH = "search"
 }
 
 @Composable
@@ -148,10 +151,7 @@ fun AppNavGraph(navController: NavHostController) {
 
         composable(Destinations.HOME) {
             HomeScreen(
-                onNavigateToExplore = { navController.navigate(Destinations.EXPLORE) },
-                onNavigateToLibrary = { navController.navigate("library_route_placeholder") },
-                onNavigateToProfile = { navController.navigate("profile_route_placeholder") },
-                onNavigateToSearch = { navController.navigate("search_route_placeholder") },
+                navController = navController,
                 onBookClick = { bookId ->
                     navController.navigate("book_detail/$bookId")
                 }
@@ -169,9 +169,29 @@ fun AppNavGraph(navController: NavHostController) {
             )
         }
         composable(EXPLORE) {
-            ExploreScreen(onBookClick = { bookId ->
-                navController.navigate("book_detail/$bookId")
-            })
+            ExploreScreen(
+                navController = navController,
+                onBookClick = { bookId ->
+                    navController.navigate("book_detail/$bookId")
+                }
+            )
+        }
+
+        composable(Destinations.LIBRARY) {
+            LibraryScreen(
+                navController = navController,
+                onBookClick = { bookId ->
+                    navController.navigate("${Destinations.BOOK_DETAIL}/$bookId")
+                }
+            )
+        }
+
+        composable(Destinations.PROFILE) {
+            // TODO: Implement ProfileScreen
+        }
+
+        composable(Destinations.SEARCH) {
+            // TODO: Implement SearchScreen
         }
 
     }
