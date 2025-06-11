@@ -201,6 +201,10 @@ class AuthRepository @Inject constructor(
         }
     }
 
+    suspend fun logout() {
+        userDao.deleteAll()
+    }
+
     fun getLoggedInUser(): Flow<User?> {
         return userDao.getAllUsers().map { users -> users.firstOrNull() }
     }

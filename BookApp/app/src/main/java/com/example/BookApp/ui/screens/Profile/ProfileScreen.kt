@@ -13,6 +13,8 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -35,18 +37,25 @@ import kotlinx.coroutines.flow.asStateFlow // Untuk Preview
 @Composable
 fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel(),
-    navController: androidx.navigation.NavHostController, // <-- Tambahkan parameter ini
-    onBackClick: () -> Unit = {} // Callback untuk kembali dari Top Bar
+    navController: androidx.navigation.NavHostController,
+    onBackClick: () -> Unit = {},
+    onLogout: () -> Unit
 ) {
     val profileState by viewModel.profileState.collectAsState()
 
-    // Dapatkan currentRoute untuk bottom nav
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    val logoutSuccess by viewModel.logoutSuccess.collectAsState()
+
+    LaunchedEffect(logoutSuccess) {
+        if (logoutSuccess) {
+            onLogout()
+        }
+    }
+
     Scaffold(
         topBar = {
-            // Top Bar kustom untuk Profile Screen
             TopAppBar(
                 title = { Text("Profile", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
@@ -55,7 +64,6 @@ fun ProfileScreen(
                     }
                 },
                 actions = {
-                    // Ikon Search dan Profile di Top Bar
                     IconButton(onClick = { navController.navigate(Destinations.SEARCH) }) {
                         Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.Black)
                     }
@@ -67,9 +75,8 @@ fun ProfileScreen(
             )
         },
         bottomBar = {
-            // Reuses HomeBottomNavigationBar
             HomeBottomNavigationBar(
-                currentRoute = currentRoute ?: Destinations.PROFILE, // Gunakan currentRoute
+                currentRoute = currentRoute ?: Destinations.PROFILE,
                 onHomeClick = {
                     if (currentRoute != Destinations.HOME) {
                         navController.navigate(Destinations.HOME) { popUpTo(Destinations.HOME) { inclusive = true } }
@@ -168,17 +175,28 @@ fun ProfileScreen(
                         ProfileInfoRow(
                             label = "Email",
                             value = user.email ?: "N/A",
-                            // No edit button for email typically
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Password Section
                         ProfileInfoRow(
                             label = "Password",
-                            value = "**********", // Masked password
+                            value = "**********",
                             onEditClick = { /* TODO: Implement Edit Password */ }
                         )
+
+                        Spacer(modifier = Modifier.height(32.dp))
+
+                        Button(
+                            onClick = { viewModel.logout() },
+                            modifier = Modifier
+                                .fillMaxWidth(0.85f)
+                                .height(48.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                        ) {
+                            Text(text = "Logout", color = Color.White)
+                        }
                     }
                 }
             }
@@ -190,7 +208,7 @@ fun ProfileScreen(
 fun ProfileInfoRow(
     label: String,
     value: String,
-    onEditClick: (() -> Unit)? = null // Optional edit button
+    onEditClick: (() -> Unit)? = null
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
