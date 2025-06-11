@@ -2,6 +2,7 @@ package com.example.BookApp.ui.screens.login
 
 import androidx.compose.ui.platform.LocalContext
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import com.example.BookApp.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -23,7 +24,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 
-
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel(),
@@ -44,11 +44,10 @@ fun LoginScreen(
     LaunchedEffect(loginState) {
         when (loginState) {
             is LoginState.Loading -> {
-                // Loading? Bisa dikasih loading spinner di button kalo mau
+
             }
 
             is LoginState.Success -> {
-                // Bisa kasih snackbar sukses juga kalau mau, tapi di sini Toast dulu
                 Toast.makeText(context, "Login Successful", Toast.LENGTH_SHORT).show()
                 viewModel.resetState()
                 onLoginSuccess() // navigate
@@ -80,11 +79,10 @@ fun LoginScreen(
         ) {
             Spacer(modifier = Modifier.height(100.dp))
 
-            Icon(
-                painter = painterResource(id = R.drawable.ic_placeholder),
-                contentDescription = "Logo",
-                tint = Color(0xFFB0C4DE),
-                modifier = Modifier.size(64.dp)
+            Image(
+                painter = painterResource(id = R.drawable.bookapp_logo),
+                contentDescription = "App Logo",
+                modifier = Modifier.size(214.dp)
             )
 
             Spacer(modifier = Modifier.height(40.dp))
