@@ -9,11 +9,11 @@ class Buku extends Model
     protected $table = "buku";
     protected $fillable = [
         'judul',
-        'genre',
         'tanggal_publikasi', 
         'author_id',
         'deskripsi',
         'rating',
+        'cover_image_url',
     ];
 
     protected $casts = [
@@ -23,5 +23,10 @@ class Buku extends Model
 
     public function author() {
         return $this->belongsTo(Author::class, 'author_id');
+    }
+    
+    public function genres()
+    {
+        return $this->belongsToMany(Genre::class, 'buku_genre', 'buku_id', 'genre_id');
     }
 }

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthorController;
 use App\Http\Controllers\Api\BukuController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\GenreController;
 use App\Http\Controllers\Api\PasswordResetController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -19,6 +20,7 @@ use Illuminate\Support\Facades\Route;
 
 route::apiResource('buku', BukuController::class);
 route::apiResource('authors', AuthorController::class);
+route::apiResource('genres', GenreController::class);
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
