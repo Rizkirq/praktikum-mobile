@@ -1,17 +1,29 @@
 package com.example.BookApp.ui.navigation
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import androidx.navigation.NamedNavArgument
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
+import com.example.BookApp.ui.navigation.Destinations.EXPLORE
+import com.example.BookApp.ui.screens.BookDetail.BookDetailScreen
+import com.example.BookApp.ui.screens.Explore.ExploreScreen
+import com.example.BookApp.ui.screens.Library.LibraryScreen
 import com.example.BookApp.ui.screens.LupaPassword.ForgotPasswordScreen
 import com.example.BookApp.ui.screens.login.LoginScreen
 import com.example.BookApp.ui.screens.register.RegisterScreen
 import com.example.BookApp.ui.screens.LupaPassword.ResetPasswordScreen
 import com.example.BookApp.ui.screens.register.VerifyEmailScreen
 import com.example.BookApp.ui.screens.LupaPassword.EnterResetCodeScreen
+import com.example.BookApp.ui.screens.Profile.ProfileScreen
+import com.example.BookApp.ui.screens.home.HomeScreen
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.BookApp.ui.screens.Splash.SplashScreen
 
 object Destinations {
     const val LOGIN = "login"
@@ -21,14 +33,35 @@ object Destinations {
     const val ENTER_RESET_CODE = "enter_reset_code/{email}"
     const val RESET_PASSWORD = "reset_password/{email}/{token}"
     const val HOME = "home"
+    const val BOOK_DETAIL = "book_detail/{bookId}"
+    const val EXPLORE = "explore"
+    const val LIBRARY = "library"
+    const val PROFILE = "profile"
+    const val SEARCH = "search"
+    const val SPLASH = "splash"
 }
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = Destinations.LOGIN
+        startDestination = Destinations.SPLASH,
+        modifier = Modifier.fillMaxSize()
     ) {
+        composable(Destinations.SPLASH) {
+            SplashScreen(
+                onLoggedIn = {
+                    navController.navigate(Destinations.HOME) {
+                        popUpTo(Destinations.SPLASH) { inclusive = true }
+                    }
+                },
+                onNotLoggedIn = {
+                    navController.navigate(Destinations.LOGIN) {
+                        popUpTo(Destinations.SPLASH) { inclusive = true }
+                    }
+                }
+            )
+        }
         composable(Destinations.LOGIN) {
             LoginScreen(
                 onLoginSuccess = {
@@ -48,7 +81,7 @@ fun AppNavGraph(navController: NavHostController) {
         composable(Destinations.REGISTER) {
             RegisterScreen(
                 onRegisterClick = { registeredEmail ->
-                    navController.navigate("verify_email/$registeredEmail") { // <--- Baris yang benar
+                    navController.navigate("verify_email/$registeredEmail") {
                         popUpTo(Destinations.REGISTER) { inclusive = true }
                     }
                 },
@@ -81,7 +114,7 @@ fun AppNavGraph(navController: NavHostController) {
         composable(Destinations.FORGOT_PASSWORD) {
             ForgotPasswordScreen(
                 onResetCodeSent = { email ->
-                    navController.navigate("enter_reset_code/$email") { // <-- Baris yang benar
+                    navController.navigate("enter_reset_code/$email") {
                         popUpTo(Destinations.FORGOT_PASSWORD) { inclusive = true }
                     }
                 },
@@ -99,7 +132,6 @@ fun AppNavGraph(navController: NavHostController) {
             EnterResetCodeScreen(
                 userEmail = email,
                 onCodeValidatedAndProceed = { validatedEmail, resetToken ->
-                    // Navigasi ke ResetPasswordScreen setelah kode divalidasi, bawa email dan token
                     navController.navigate("reset_password/$validatedEmail/$resetToken") {
                         popUpTo(Destinations.ENTER_RESET_CODE) { inclusive = true }
                     }
@@ -136,5 +168,59 @@ fun AppNavGraph(navController: NavHostController) {
                 }
             )
         }
+
+        composable(Destinations.HOME) {
+            HomeScreen(
+                navController = navController,
+                onBookClick = { bookId ->
+                    navController.navigate("book_detail/$bookId")
+                }
+            )
+        }
+
+        composable(
+            route = Destinations.BOOK_DETAIL,
+            arguments = listOf(navArgument("bookId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val bookId = backStackEntry.arguments?.getInt("bookId")
+            BookDetailScreen(
+                bookId = bookId,
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+        composable(EXPLORE) {
+            ExploreScreen(
+                navController = navController,
+                onBookClick = { bookId ->
+                    navController.navigate("book_detail/$bookId")
+                }
+            )
+        }
+
+        composable(Destinations.LIBRARY) {
+            LibraryScreen(
+                navController = navController,
+                onBookClick = { bookId ->
+                    navController.navigate("${Destinations.BOOK_DETAIL}/$bookId")
+                }
+            )
+        }
+
+        composable(Destinations.PROFILE) {
+            ProfileScreen(
+                navController = navController,
+                onBackClick = { navController.popBackStack() },
+                onLogout = {
+                    navController.navigate(Destinations.LOGIN) {
+                        popUpTo(Destinations.HOME) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Destinations.SEARCH) {
+            // TODO: Implement SearchScreen
+        }
+
     }
 }
