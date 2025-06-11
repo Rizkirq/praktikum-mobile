@@ -81,4 +81,5 @@ dependencies {
     implementation(libs.skydoves.sandwich.retrofit)
     implementation(libs.skydoves.sandwich)
     implementation(libs.skydoves.whatif)
+    implementation(libs.coil.compose)
 }
