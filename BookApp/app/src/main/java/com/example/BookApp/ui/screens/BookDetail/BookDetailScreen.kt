@@ -162,19 +162,75 @@ fun BookDetailScreen(
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = "Rating",
-                                modifier = Modifier.size(24.dp),
-                                tint = Color.Gray
-                            )
+                            // Rating Icon and Text
+                            book.rating?.let { rating -> // Hanya tampilkan jika rating tidak null
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Star,
+                                        contentDescription = "Rating",
+                                        modifier = Modifier.size(24.dp),
+                                        tint = Color.Gray
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "$rating / 5.0", // <-- Tampilkan nilai rating
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = Color.Black
+                                    )
+                                }
+                            } ?: run {
+                                // Tampilkan teks default jika rating null
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Star,
+                                        contentDescription = "Rating",
+                                        modifier = Modifier.size(24.dp),
+                                        tint = Color.Gray
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "N/A", // <-- Tampilkan jika rating null
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = Color.Gray
+                                    )
+                                }
+                            }
+
                             Spacer(modifier = Modifier.width(24.dp))
-                            Icon(
-                                imageVector = Icons.Default.Schedule,
-                                contentDescription = "Publication Date",
-                                modifier = Modifier.size(24.dp),
-                                tint = Color.Gray
-                            )
+
+                            // Publication Date Icon and Text
+                            book.tanggalPublikasi?.let { pubDate -> 
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Schedule,
+                                        contentDescription = "Publication Date",
+                                        modifier = Modifier.size(24.dp),
+                                        tint = Color.Gray
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = pubDate.substringBefore("T"),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = Color.Black
+                                    )
+                                }
+                            } ?: run {
+                                // Tampilkan teks default jika tanggal publikasi null
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Schedule,
+                                        contentDescription = "Publication Date",
+                                        modifier = Modifier.size(24.dp),
+                                        tint = Color.Gray
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "N/A",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = Color.Gray
+                                    )
+                                }
+                            }
                         }
 
                         Spacer(modifier = Modifier.height(24.dp))
