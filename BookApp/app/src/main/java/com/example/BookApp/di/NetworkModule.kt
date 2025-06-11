@@ -1,5 +1,6 @@
 package com.example.BookApp.di
 
+import com.example.BookApp.networks.BookApi
 import com.example.BookApp.networks.LoginApi
 import com.skydoves.sandwich.retrofit.adapters.ApiResponseCallAdapterFactory
 import dagger.Module
@@ -31,7 +32,8 @@ object NetworkModule {
     @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("http://10.0.2.2/laravel/public/api/")
+//            .baseUrl("http://10.0.2.2/laravel/public/api/")
+            .baseUrl("http://192.168.100.74/laravel/public/api/")
             .addConverterFactory(GsonConverterFactory.create())
             .client(okHttpClient)
             .build()
@@ -40,6 +42,12 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideApiService(retrofit: Retrofit): LoginApi {
-        return retrofit.create(LoginApi::class.java) //
+        return retrofit.create(LoginApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideBookApiService(retrofit: Retrofit): BookApi {
+        return retrofit.create(BookApi::class.java)
     }
 }
