@@ -1,6 +1,6 @@
 # praktikum-mobile
 
-Repositori ini berisi proyek pengembangan aplikasi mobile dan web sebagai bagian dari tugas/praktikum. Proyek ini terbagi menjadi dua bagian utama: sebuah aplikasi mobile dan sebuah sistem backend/web menggunakan framework Laravel.
+Repositori ini berisi proyek pengembangan aplikasi mobile dan web sebagai tugas praktikum. Proyek ini terbagi menjadi dua bagian utama: sebuah aplikasi mobile dan sebuah sistem backend/web menggunakan framework Laravel.
 
 ## Struktur Proyek
 
@@ -86,13 +86,3 @@ Repositori ini memiliki dua folder utama:
     ```
     Server akan berjalan di `http://127.0.0.1:PORT_ANDA` (sesuai port yang Anda gunakan).
 
-## Kontribusi
-
-Jika Anda ingin berkontribusi pada proyek ini, silakan ikuti langkah-langkah berikut:
-1.  Fork repositori ini.
-2.  Buat branch baru: `git checkout -b fitur/nama-fitur-baru`
-3.  Lakukan perubahan dan commit: `git commit -m "Menambahkan fitur baru"`
-4.  Push ke branch Anda: `git push origin fitur/nama-fitur-baru`
-5.  Buat Pull Request.
-
----
