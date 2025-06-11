@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Buku;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
+use App\Models\Author;
 
 class BukuController extends Controller
 {
@@ -13,7 +14,7 @@ class BukuController extends Controller
      */
     public function index()
     {
-        $data = Buku::with('author')->orderBy('judul','asc',)->get();
+        $data = Buku::with('author', 'genres')->orderBy('judul','asc',)->get();
         return response()->json([   
             'status' => true,
             'message'=> 'Data ditemukan',
@@ -26,15 +27,15 @@ class BukuController extends Controller
      */
     public function store(Request $request)
     {
-        $dataBuku = new Buku;
-
         $rules = [
             'judul' =>'required',
-            'genre' => 'nullable|string|max:255',
             'tanggal_publikasi' => 'required|date',
             'deskripsi' => 'nullable|string',
             'rating' => 'nullable|numeric|min:0|max:5|regex:/^\d+(\.\d{1})?$/',
-            'author_id' => 'required|exists:author,id'
+            'author_id' => 'required|exists:author,id',
+            'cover_image_url' => 'nullable|url|max:255', 
+            'genre_ids' => 'nullable|array', 
+            'genre_ids.*' => 'exists:genres,id',
         ];
         $validator = Validator::make($request->all(), $rules);
 
@@ -43,57 +44,50 @@ class BukuController extends Controller
                 'status' => false,
                 'message' => 'Gagal memasukan data',
                 'data' => $validator->errors()
-            ],404);
+            ],422);
         }
 
-        $dataBuku = Buku::create([
+        $buku = Buku::create([ 
             'judul' => $request->judul,
-            'genre' => $request->genre,
             'tanggal_publikasi' => $request->tanggal_publikasi,
             'deskripsi' => $request->deskripsi,
             'rating' => $request->rating,
-            'author_id' => $request-> author_id
+            'author_id' => $request->author_id,
+            'cover_image_url' => $request->cover_image_url, 
         ]);
-        // $dataBuku->judul = $request->judul;
-        // $dataBuku->pengarang = $request->pengarang;
-        // $dataBuku->tanggal_publikasi = $request->tanggal_publikasi;
 
-        // $post = $dataBuku->save();
+        if ($request->has('genre_ids')) {
+            $buku->genres()->sync($request->genre_ids);
+        }
 
         return response()->json([
             'status' => true,
             'message' => 'Sukses memasukan data',
-            'data' => $dataBuku->load('author')
-        ],201);
+            'data' => $buku->load('author', 'genres') 
+        ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
-        $data = Buku::with('author')->find($id);
-        if($data){
+        $data = Buku::with('author', 'genres')->find($id);
+        if ($data) {
             return response()->json([
                 'status' => true,
                 'message' => 'Data ditemukan',
                 'data' => $data
-            ],200);
+            ], 200);
         } else {
             return response()->json([
                 'status' => false,
                 'message' => 'Data tidak ditemukan'
-            ],404);
+            ], 404);
         }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
-        $dataBuku = Buku::find($id); 
-        if (empty($dataBuku)) {
+        $buku = Buku::find($id); 
+        if (empty($buku)) {
             return response()->json([
                 'status' => false,
                 'message' => 'Data tidak ditemukan'
@@ -101,57 +95,64 @@ class BukuController extends Controller
         }
 
         $rules = [
-            'judul' =>'required',
-            'genre' => 'nullable|string|max:255',
+            'judul' => 'required',
             'tanggal_publikasi' => 'required|date',
             'deskripsi' => 'nullable|string',
             'rating' => 'nullable|numeric|min:0|max:5|regex:/^\d+(\.\d{1})?$/',
-            'author_id' => 'required|exists:authors,id'
+            'author_id' => 'required|exists:authors,id',
+            'cover_image_url' => 'nullable|url|max:255', 
+            'genre_ids' => 'nullable|array', 
+            'genre_ids.*' => 'exists:genres,id', 
         ];
 
         $validator = Validator::make($request->all(), $rules);
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return response()->json([
                 'status' => false,
                 'message' => 'Gagal melakukan update data',
                 'data' => $validator->errors()
-            ],404);
+            ], 422); 
         }
 
-        $dataBuku->judul = $request->judul;
-        $dataBuku->genre = $request->genre;
-        $dataBuku->tanggal_publikasi = $request->tanggal_publikasi;
-        $dataBuku->deskripsi = $request->deskripsi;
-         $dataBuku->rating = $request->rating;
-        $dataBuku->author_id = $request->author_id;
+        $buku->judul = $request->judul;
+        $buku->tanggal_publikasi = $request->tanggal_publikasi;
+        $buku->deskripsi = $request->deskripsi;
+        $buku->rating = $request->rating;
+        $buku->author_id = $request->author_id;
+        $buku->cover_image_url = $request->cover_image_url; 
+        $buku->save();
 
-        $post = $dataBuku->save();
+        if ($request->has('genre_ids')) {
+            $buku->genres()->sync($request->genre_ids);
+        } else {
+            // Opsional: jika genre_ids tidak dikirim, bisa asumsikan ingin menghapus semua genre
+            // $buku->genres()->detach();
+        }
 
         return response()->json([
             'status' => true,
             'message' => 'Sukses melakukan update data',
-            'data' => $dataBuku->load('author')
+            'data' => $buku->load('author', 'genres') 
         ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
-            $dataBuku = Buku::find($id); 
-             if (empty($dataBuku)) {
-                    return response()->json([
-                      'status' => false,
-                     'message' => 'Data tidak ditemukan'
-                 ], 404);
-              }
+        $buku = Buku::find($id);
+        if (empty($buku)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Data tidak ditemukan'
+            ], 404);
+        }
 
-        $post = $dataBuku->delete();
+        $buku->genres()->detach();
+
+        $buku->delete();
 
         return response()->json([
             'status' => true,
             'message' => 'Sukses melakukan delete data'
-        ]);
+        ], 204);
     }
 }
