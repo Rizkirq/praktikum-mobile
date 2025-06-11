@@ -28,6 +28,9 @@ import com.example.BookApp.models.Author
 import com.example.BookApp.models.Genre
 import com.example.BookApp.ui.navigation.Destinations
 import kotlinx.coroutines.flow.MutableStateFlow
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,72 +41,104 @@ fun HomeScreen(
     onNavigateToLibrary: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToSearch: () -> Unit = {},
+    navController: NavHostController,
     onBookClick: (Int) -> Unit
 ) {
     val homeState by viewModel.homeState.collectAsState()
     val userName by viewModel.userName.collectAsState()
 
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
     Scaffold(
         topBar = {
             HomeTopAppBar(
                 userName = userName,
-                onSearchClick = onNavigateToSearch,
-                onProfileClick = onNavigateToProfile
+                onSearchClick = { navController.navigate(Destinations.SEARCH) },
+                onProfileClick = { navController.navigate(Destinations.PROFILE) }
             )
         },
         bottomBar = {
             HomeBottomNavigationBar(
-                currentRoute = Destinations.HOME,
-                onHomeClick = { /* Already on Home */ },
-                onExploreClick = onNavigateToExplore,
-                onLibraryClick = onNavigateToLibrary
-            )
-        }
-    ) { paddingValues ->
-        when (homeState) {
-            is HomeState.Loading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
-            is HomeState.Error -> {
-                val errorMessage = (homeState as HomeState.Error).message
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Error: $errorMessage", color = MaterialTheme.colorScheme.error)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Button(onClick = { viewModel.fetchBooks() }) {
-                            Text("Retry")
+                currentRoute = currentRoute ?: Destinations.HOME, // Gunakan currentRoute
+                onHomeClick = {
+                    if (currentRoute != Destinations.HOME) {
+                        navController.navigate(Destinations.HOME) {
+                            popUpTo(Destinations.HOME) { inclusive = true } // Kembali ke Home
+                        }
+                    }
+                },
+                onExploreClick = {
+                    if (currentRoute != Destinations.EXPLORE) {
+                        navController.navigate(Destinations.EXPLORE) {
+                            popUpTo(Destinations.HOME) { saveState = true } // Simpan state Home
+                            launchSingleTop = true // Hindari duplikasi di back stack
+                            restoreState = true // Kembalikan state sebelumnya jika ada
+                        }
+                    }
+                },
+                onLibraryClick = {
+                    if (currentRoute != Destinations.LIBRARY) {
+                        navController.navigate(Destinations.LIBRARY) {
+                            popUpTo(Destinations.HOME) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
                         }
                     }
                 }
-            }
-            is HomeState.Success -> {
-                val recommendedBooks = (homeState as HomeState.Success).recommendedBooks
-                val updatedBooks = (homeState as HomeState.Success).updatedBooks
-
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
-                        .background(Color(0xFFF5F9FF)),
-                    contentPadding = PaddingValues(bottom = 16.dp)
-                ) {
-                    item {
-                        BookSection(title = "Rekomendasi", books = recommendedBooks, onBookClick = onBookClick)
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(Color(0xFFF5F9FF)),
+        ) {
+            when (homeState) {
+                is HomeState.Loading -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color(0xFFF5F9FF)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
                     }
-                    item {
-                        BookSection(title = "Update", books = updatedBooks, onBookClick = onBookClick)
+                }
+                is HomeState.Error -> {
+                    val errorMessage = (homeState as HomeState.Error).message
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color(0xFFF5F9FF)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Error: $errorMessage", color = MaterialTheme.colorScheme.error)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Button(onClick = { viewModel.fetchBooks() }) {
+                                Text("Retry")
+                            }
+                        }
+                    }
+                }
+                is HomeState.Success -> {
+                    val recommendedBooks = (homeState as HomeState.Success).recommendedBooks
+                    val updatedBooks = (homeState as HomeState.Success).updatedBooks
+
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color(0xFFF5F9FF)),
+                        contentPadding = PaddingValues(bottom = 16.dp)
+                    ) {
+                        item {
+                            BookSection(title = "Rekomendasi", books = recommendedBooks, onBookClick = onBookClick)
+                        }
+                        item {
+                            BookSection(title = "Update", books = updatedBooks, onBookClick = onBookClick)
+                        }
                     }
                 }
             }
@@ -193,7 +228,7 @@ fun HomeBottomNavigationBar(
             )
         )
         NavigationBarItem(
-            selected = currentRoute == "explore",
+            selected = currentRoute == Destinations.EXPLORE,
             onClick = onExploreClick,
             icon = { Icon(painterResource(id = R.drawable.ic_explore), contentDescription = "Explore") },
             label = { Text("Explore") },
@@ -206,7 +241,7 @@ fun HomeBottomNavigationBar(
             )
         )
         NavigationBarItem(
-            selected = currentRoute == "library",
+            selected = currentRoute == Destinations.LIBRARY,
             onClick = onLibraryClick,
             icon = { Icon(painterResource(id = R.drawable.ic_library), contentDescription = "Library") },
             label = { Text("Library") },
