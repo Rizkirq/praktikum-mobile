@@ -18,6 +18,7 @@ import com.example.BookApp.ui.screens.register.RegisterScreen
 import com.example.BookApp.ui.screens.LupaPassword.ResetPasswordScreen
 import com.example.BookApp.ui.screens.register.VerifyEmailScreen
 import com.example.BookApp.ui.screens.LupaPassword.EnterResetCodeScreen
+import com.example.BookApp.ui.screens.Profile.ProfileScreen
 import com.example.BookApp.ui.screens.home.HomeScreen
 
 object Destinations {
@@ -187,7 +188,10 @@ fun AppNavGraph(navController: NavHostController) {
         }
 
         composable(Destinations.PROFILE) {
-            // TODO: Implement ProfileScreen
+            ProfileScreen(
+                navController = navController,
+                onBackClick = { navController.popBackStack() }
+            )
         }
 
         composable(Destinations.SEARCH) {
