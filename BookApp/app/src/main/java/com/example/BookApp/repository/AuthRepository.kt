@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
 import com.example.BookApp.helper.Result
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import okhttp3.ResponseBody
 import org.json.JSONObject
 import retrofit2.HttpException
@@ -197,5 +199,9 @@ class AuthRepository @Inject constructor(
         } catch (e: Exception) {
             "Unknown error (parsing failed)"
         }
+    }
+
+    fun getLoggedInUser(): Flow<User?> {
+        return userDao.getAllUsers().map { users -> users.firstOrNull() }
     }
 }
